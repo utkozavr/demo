@@ -1,0 +1,8 @@
+
+group 'my.demo.config'
+
+dependencies {
+    implementation "io.github.config4k:config4k:$config4k_version"
+}
+
+

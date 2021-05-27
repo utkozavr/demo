@@ -1,0 +1,34 @@
+syntax = "proto3";
+package my.demo.currencyservice;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/rpc/error_details.proto";
+import "google/rpc/status.proto";
+import "google/api/annotations.proto";
+
+
+service CurrencyService {
+  rpc GetCurrency(google.protobuf.Empty) returns (CurrenciesResponse) {
+    option (google.api.http) = {
+      get: "/currencies"
+    };
+  }
+  rpc toggleDisabled(Currency) returns (Currency) {
+    option (google.api.http) = {
+      post: "/toggle-disabled/{code}"
+      body: "*"
+    };
+  }
+}
+
+message CurrenciesResponse {
+  repeated Currency currencies = 1;
+  google.rpc.Status status = 2;
+}
+
+message Currency {
+  string code = 1;
+  string name = 2;
+  bool isActive = 3;
+}

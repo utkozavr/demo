@@ -1,0 +1,59 @@
+version: "3.3"
+services:
+
+  rateserver:
+    container_name: "rateserver"
+    build: ./RateServer/
+    command: ["java", "-jar", "RateServer.jar"]
+
+  eventservice:
+    container_name: "eventservice"
+    build: ./EventService/
+    command: ["java", "-jar", "EventService.jar"]
+
+  currencyservice:
+    container_name: "currencyservice"
+    build: ./CurrencyService/
+    depends_on:
+      - db
+      - eventservice
+      - rateserver
+    command: ["java", "-jar", "CurrencyService.jar"]
+
+  exchangeservice:
+    container_name: "exchangeservice"
+    build: ./ExchangeService/
+    depends_on:
+      - currencyservice
+      - eventservice
+      - rateserver
+    command: ["java", "-jar", "ExchangeService.jar"]
+
+  db:
+    container_name: "db"
+    image: postgres
+    environment:
+      POSTGRES_USER: "dbuser"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "currency"
+      PGDATA: /var/lib/postgresql/data
+
+  envoy:
+    container_name: "envoy"
+    build: ./EnvoyGateway
+    ports:
+      - "8080:8080"
+    volumes:
+    - ./EnvoyGateway/main.dsc:/data/main.dsc:ro
+    - ./EnvoyGateway/envoy.yaml:/etc/envoy/envoy.yaml:ro
+
+  graphql:
+    container_name: "graphql"
+    build: ./GraphqlGateway
+    ports:
+      - "8081:8088"
+    depends_on:
+      - currencyservice
+      - eventservice
+      - exchangeservice
+    command: [ "java", "-jar", "GraphqlGateway.jar" ]

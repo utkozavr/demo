@@ -1,0 +1,49 @@
+schema {
+    query: Query
+    mutation: Mutation
+    subscription : Subscription
+}
+
+type Query {
+    getCurrencies: [Currency!]!
+
+}
+
+type Mutation {
+    toggleDisabled(code: String): Currency!
+}
+
+type Subscription {
+    eventSubscription: EventMessage!
+    rateSubscription: [ExchangeRate]!
+}
+
+enum Service {
+    UNRECOGNAIZED
+    CURRENCY_SERVICE
+}
+
+enum Event {
+    UNRECOGNAIZED
+    UPDATED
+}
+
+type EventMessage {
+    timestamp: String!
+    sender: Service!
+    message: Event!
+}
+
+type Currency {
+    code: ID!
+    name: String!
+    isActive: Boolean!
+}
+
+
+
+type ExchangeRate {
+    source: Currency!
+    destination: Currency!
+    rate: Float!
+}

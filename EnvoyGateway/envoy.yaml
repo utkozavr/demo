@@ -1,0 +1,106 @@
+admin:
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+static_resources:
+  listeners:
+    - name: main-listener
+      address:
+        socket_address: { address: 0.0.0.0, port_value: 8080 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: grpc_json
+                codec_type: AUTO
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: local_service
+                      domains: ["*"]
+                      routes:
+                        - match: { prefix: "/toggle-disabled" }
+                          route: { cluster: currency-service, timeout: { seconds: 60 } }
+                        - match: { prefix: "/currencies" }
+                          route: { cluster: currency-service, timeout: { seconds: 60 } }
+                        - match: { prefix: "/events" }
+                          route: { cluster: event-service, timeout: { seconds: 60 } }
+                        - match: { prefix: "/rates" }
+                          route: { cluster: exchange-service, timeout: { seconds: 60 } }
+                http_filters:
+                  - name: envoy.filters.http.grpc_json_transcoder
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
+                      proto_descriptor: "/data/main.dsc"
+                      match_incoming_request_route: true
+                      services:
+                        - "my.demo.currencyservice.CurrencyService"
+                        - "my.demo.eventqueueservice.EventQueueService"
+                        - "my.demo.exchangeservice.ExchangeService"
+                      print_options:
+                        add_whitespace: true
+                        always_print_primitive_fields: true
+                        always_print_enums_as_ints: false
+                        preserve_proto_field_names: false
+                  - name: envoy.filters.http.router
+
+
+  clusters:
+    - name: currency-service
+      connect_timeout: 1.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      dns_lookup_family: V4_ONLY
+      typed_extension_protocol_options:
+          envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+            "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+            explicit_http_config:
+              http2_protocol_options: { }
+      load_assignment:
+          cluster_name: currency-service
+          endpoints:
+            - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: currencyservice
+                        port_value: 8182
+    - name: event-service
+      connect_timeout: 1.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      dns_lookup_family: V4_ONLY
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: { }
+      load_assignment:
+        cluster_name: event-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: eventservice
+                      port_value: 8183
+    - name: exchange-service
+      connect_timeout: 1.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      dns_lookup_family: V4_ONLY
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options: { }
+      load_assignment:
+        cluster_name: exchange-service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: exchangeservice
+                      port_value: 8184

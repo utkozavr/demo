@@ -1,0 +1,25 @@
+syntax = "proto3";
+package my.demo.exchangeservice;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "CurrencyService.proto";
+
+service ExchangeService {
+  rpc GetRates(google.protobuf.Empty) returns (stream Rates) {
+    option (google.api.http) = {
+      get: "/rates"
+    };
+  }
+}
+
+message ExchangePair {
+  my.demo.currencyservice.Currency source = 1;
+  my.demo.currencyservice.Currency destination = 2;
+  double rate = 3;
+}
+
+message Rates {
+  repeated ExchangePair rates = 1;
+}
+

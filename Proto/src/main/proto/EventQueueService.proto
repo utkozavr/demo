@@ -1,0 +1,31 @@
+syntax = "proto3";
+package my.demo.eventqueueservice;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service EventQueueService {
+  rpc Publish(EventMessage) returns (google.protobuf.Empty);
+  rpc Listen(google.protobuf.Empty) returns (stream EventMessage) {
+    option (google.api.http) = {
+      get: "/events"
+    };
+  }
+}
+
+enum Service {
+  CURRENCY_SERVICE = 0;
+}
+
+enum Event {
+  UPDATED = 0;
+}
+
+
+message EventMessage {
+  google.protobuf.Timestamp timestamp = 1;
+  Service sender = 2;
+  Event message = 3;
+}
+

@@ -1,0 +1,24 @@
+group 'my.demo.eventqueueservice'
+
+tasks.assemble {
+    dependsOn(tasks.shadowJar)
+}
+
+tasks.shadowJar {
+    mergeServiceFiles()
+    archiveClassifier.set("")
+    manifest {
+        attributes 'Main-Class': "my.demo.eventqueueservice.MainKt"
+    }
+}
+
+dependencies {
+    implementation project(":Config")
+    implementation project(":Proto")
+    implementation project(":GrpcServer")
+    implementation("io.grpc:grpc-netty-shaded:$grpc_version")
+    implementation("io.grpc:grpc-kotlin-stub:$grpc_kotlin_version")
+    implementation("com.google.protobuf:protobuf-java-util:$protobuf_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
+    implementation("javax.annotation:javax.annotation-api:$javax_annotation_version")
+}

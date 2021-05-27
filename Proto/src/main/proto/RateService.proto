@@ -1,0 +1,37 @@
+syntax = "proto3";
+package my.demo.rateserver;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/rpc/error_details.proto";
+import "google/rpc/status.proto";
+
+service RateService {
+  rpc GetCurrency(google.protobuf.Empty) returns (CurrenciesResponse);
+  rpc GetRates(RateRequest) returns (stream RatesResponse);
+}
+
+message CurrenciesResponse {
+  repeated Currency currencies = 1;
+  google.rpc.Status status = 2;
+}
+
+message Currency {
+  string code = 1;
+  string full_name = 2;
+}
+
+message RateRequest {
+  string base_currency_code = 1;
+}
+
+message RatesResponse {
+  google.protobuf.Timestamp timestamp = 1;
+  repeated Rate rates = 2;
+  google.rpc.Status status = 3;
+}
+
+message Rate {
+  Currency currency = 1;
+  double value = 2;
+}

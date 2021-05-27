@@ -1,0 +1,33 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+group 'my.demo'
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'kotlinx-serialization'
+
+dependencies {
+    implementation ("io.grpc:grpc-protobuf:$grpc_version")
+    implementation project(":Config")
+    implementation project(":Proto")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$kotlinx_coroutines_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$kotlinx_coroutines_version")
+    compile('org.springframework.boot:spring-boot-starter-websocket')
+    implementation 'com.ejlchina:jsonkit:1.0.0'
+    implementation 'com.graphql-java:graphql-java:16.2'
+    implementation 'com.graphql-java:graphql-java-spring-boot-starter-webmvc:2.0'
+    implementation 'com.google.guava:guava:30.1.1-jre'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}

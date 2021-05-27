@@ -1,0 +1,67 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        google()
+
+    }
+    dependencies {
+        classpath "com.google.protobuf:protobuf-gradle-plugin:$protobuf_plugin_version"
+    }
+}
+
+apply plugin: 'com.google.protobuf'
+
+group 'my.demo.proto'
+version 'unspecified'
+
+dependencies {
+    implementation ("io.grpc:grpc-protobuf:$grpc_version")
+    implementation("io.grpc:grpc-netty-shaded:$grpc_version")
+    implementation("io.grpc:grpc-kotlin-stub:$grpc_kotlin_version")
+    implementation("com.google.protobuf:protobuf-java-util:$protobuf_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
+    implementation("javax.annotation:javax.annotation-api:$javax_annotation_version")
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:$protobuf_version"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpc_version"
+        }
+        grpckt {
+            artifact = "io.grpc:protoc-gen-grpc-kotlin:$grpc_kotlin_version:jdk7@jar"
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            // If true, will generate a descriptor_set.desc file under
+            // $generatedFilesBaseDir/$sourceSet. Default is false.
+            // See --descriptor_set_out in protoc documentation about what it is.
+            task.generateDescriptorSet = true
+
+            // Allows to override the default for the descriptor set location
+            task.descriptorSetOptions.path ="${projectDir}/build/descriptors/${task.sourceSet.name}.dsc"
+
+            // If true, the descriptor set will contain line number information
+            // and comments. Default is false.
+            task.descriptorSetOptions.includeSourceInfo = true
+
+            // If true, the descriptor set will contain all transitive imports and
+            // is therefore self-contained. Default is false.
+            task.descriptorSetOptions.includeImports = true
+        }
+        all().forEach {
+            it.plugins {
+                grpc{}
+                grpckt{}
+            }
+
+        }
+
+    }
+}

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Subscriptions over Web Sockets</title>
+    <style>
+        body {
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            font-weight: 300;
+        }
+
+        .networking {
+            display: none;
+        }
+
+        .stockTicker {
+            border: solid black 1px;
+            margin: 2px;
+            min-height: 400px
+        }
+
+        .stockWrapper {
+            display: block;
+            padding: 20px;
+            font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            font-weight: 300;
+        }
+
+        .stockSymbol {
+            font-weight: 600;
+        }
+
+        .stockPrice {
+            font-weight: 600;
+            color: red;
+        }
+
+        .stockUp {
+            font-weight: 600;
+            color: green;
+        }
+    </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script>
+
+        var host = "ws://" + document.location.host + "/subscription"
+        var rateSocket;
+        var eventSocket;
+
+
+        function subscribeRate () {
+
+            rateSocket = new WebSocket(host);
+
+            rateSocket.onmessage = function (event) {
+                var data = event.data;
+                var msg = JSON.parse(data);
+                console.log(msg);
+                $('#rate-data').prepend(data + "\n");
+            };
+
+            rateSocket.onopen = function() {
+                console.log("web rateSocket opened");
+                var query = $('#rate-request').val();
+                var graphqlMsg = {
+                    query: query,
+                    variables: {}
+                };
+
+                console.log("graphqlMsg " + query);
+                rateSocket.send(JSON.stringify(graphqlMsg));
+            }
+
+        };
+
+
+
+
+        function subscribeEvent () {
+
+            eventSocket = new WebSocket(host);
+
+            eventSocket.onmessage = function (event) {
+                var data = event.data;
+                var msg = JSON.parse(data);
+                console.log(msg);
+                $('#event-data').prepend(data + "\n");
+            };
+
+            eventSocket.onopen = function() {
+                console.log("web eventSocket opened");
+
+                var query = $('#event-request').val();
+
+                var graphqlMsg = {
+                    query: query,
+                    variables: {}
+                };
+
+                console.log("graphqlMsg " + query);
+                eventSocket.send(JSON.stringify(graphqlMsg));
+            }
+
+        };
+
+
+
+
+        function unsubscribeEvent() {
+            eventSocket.close()
+            console.log("web eventSocket closed");
+        }
+        function unsubscribeRate() {
+            rateSocket.close()
+            console.log("web rateSocket closed");
+        }
+
+    </script>
+</head>
+<body>
+
+<div class="jumbotron text-center">
+    <h2>graphql-java Subscriptions</h2>
+    <p>An example of graphql-java subscriptions sending the continous updates over websockets</p>
+</div>
+
+
+<div style="margin: 50px;">
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <h3>Rate subscription</h3>
+            <p>request :</p>
+            <textarea style="width: 100%;" rows="12" id="rate-request">
+subscription {
+    rateSubscription {
+        source {
+            name
+            code
+            isActive
+        }
+        destination {
+            name
+            code
+            isActive
+        }
+        rate
+    }
+}
+            </textarea><br>
+            <button onclick="subscribeRate()">Subscribe</button><button onclick="unsubscribeRate()">UnSubscribe</button>
+        </div>
+        <div class="col-8">
+            <h3>Rate Data</h3>
+            <textarea disabled style="width: 60%;" rows="20" id="rate-data">Pending subscription...</textarea>
+        </div>
+    </div>
+</div>
+
+
+<div style="margin: 50px;">
+    <div class="row">
+
+        <div class="col-md-3">
+            <h3>Event subscription</h3>
+            <p>request :</p>
+            <textarea style="width: 100%;" rows="12" id="event-request">
+subscription {
+  eventSubscription {
+    sender
+    message
+    timestamp
+  }
+}
+            </textarea><br>
+            <button onclick="subscribeEvent()">Subscribe</button><button onclick="unsubscribeEvent()">UnSubscribe</button>
+        </div>
+        <div class="col-8">
+            <h3>Event Data</h3>
+            <textarea disabled style="width: 60%;" rows="20" id="event-data">Pending subscription...</textarea>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
